@@ -5,7 +5,10 @@ const bcrypt = require('bcrypt')
 
 const app = express();
 app.use(express.json());
-app.use(cors({ origin: 'http://localhost:8080' }));
+app.use(cors({ 
+origin: 'http://localhost:8080',
+methods: ['GET', 'POST', 'PUT', 'DELETE'],
+ }));
 
 const config = {
 	user: 'henriko',
@@ -48,8 +51,8 @@ app.get("/api/getUserById/:id", async (req, res) => {
 app.post("/api/createUser", async (req, res) => {
     const {EMAIL, NAME, PASSWORD } = req.body;
     try {
-		const hashedPassword = await bcrypt.hash(PASSWORD, 10);
-        await sql.query`INSERT INTO users (EMAIL, NAME, PASSWORD) VALUES (${EMAIL}, ${NAME}, ${PASSWORD})`;
+		  const hashedPASSWORD = await bcrypt.hash(PASSWORD, 10);
+        await sql.query`INSERT INTO users (EMAIL, NAME, PASSWORD) VALUES (${EMAIL}, ${NAME}, ${hashedPASSWORD})`;
         res.status(201).send("User created");
     } catch (error) {
         res.status(500).send(error.message);
