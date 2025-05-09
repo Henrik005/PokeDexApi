@@ -1,8 +1,8 @@
 const express = require("express");
 const sql = require("mssql");
 const cors = require('cors');
-const bcrypt = require('bcrypt')
-
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const app = express();
 app.use(express.json());
 app.use(cors({ 
@@ -88,6 +88,31 @@ app.delete("/api/deleteUser/:id", async (req, res) => {
         res.status(500).send(error.message);
     }
 });
+
+const SECRET_KEY = "veryveryverysecurekey12345"
+app.post("/api/login", async (req, res) => {
+  const { USERNAME, PASSWORD } = req.body;
+  try {
+    const result = await sql.query`SELECT * FROM users WHERE NAME = ${USERNAME}`;
+
+    if (result.recordset.length === 0) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    const user = result.recordset[0];
+    const match = await bcrypt.compare(PASSWORD, user.PASSWORD);
+    if (!match) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+    
+	const token = jwt.sign({USERNAME: user.NAME, EMAIL: user.EMAIL }, SECRET_KEY, { expiresIn: '1h' });
+	res.json( {token });
+    console.log(token)
+  } catch (err) {
+    res.status(500).send(err.message);
+    console.log(err)
+  }
+});
+
 
 const port = 3000;
 app.listen(port, () => {
