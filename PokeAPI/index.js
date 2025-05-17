@@ -53,6 +53,16 @@ app.post("/api/createUser", async (req, res) => {
     try {
 		  const hashedPASSWORD = await bcrypt.hash(PASSWORD, 10);
         await sql.query`INSERT INTO users (EMAIL, NAME, PASSWORD) VALUES (${EMAIL}, ${NAME}, ${hashedPASSWORD})`;
+        await sql.query(`
+    CREATE TABLE ${NAME}_pokemon (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT,
+    name VARCHAR(100) NOT NULL,
+    type VARCHAR(100) NOT NULL,
+    locations VARCHAR(500) NULL,
+    FOREIGN KEY (user_id) REFERENCES users(ID)
+  );
+`);
         res.status(201).send("User created");
     } catch (error) {
         res.status(500).send(error.message);
@@ -106,7 +116,6 @@ app.post("/api/login", async (req, res) => {
     
 	const token = jwt.sign({USERNAME: user.NAME, EMAIL: user.EMAIL }, SECRET_KEY, { expiresIn: '1h' });
 	res.json( {token });
-    console.log(token)
   } catch (err) {
     res.status(500).send(err.message);
     console.log(err)
